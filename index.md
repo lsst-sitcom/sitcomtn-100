@@ -4,6 +4,8 @@
 > * 1) it is a provisional version which won't be tidied up until after the design review
 > * 2) it is documenting a moving target, meaning that there are places where the present tense is used to save having to write everything twice, but where the work hasn't quite been done yet. These are, however, all places where the work is planned and underway, _i.e._ it's not aspirational, it's just not quite finsihed yet, but will be on the scale of weeks.
 
+> There are many ways to skin a cat. This is _de facto_ how it is currently being done, but nothing in here should be taken as an assertion that this is how it _should_ be being done, merely that it is currently (and that without significant intervention and extra effort allocated, it will remain so, due to the finite nature of the allocated effort and enormous scope of work).
+
 ## Abstract
 
 ```{abstract}
@@ -68,19 +70,54 @@ The `summit_extras` package, however, is not like this. It is a place for adding
 
 ## The Services
 
+The overwhleming majority of Rapid Analysis pods will, once the main camera is taking data, be for processing the full focal plane data. However, when counting by type or by code line-count[^podcount], the vast majority of the Rapid Analysis deployed services are actually "snowflake services" - realtime processing services for things which have been written from scratch to support a specific case[^refactor].
+
+[^podcount]: And for now, because LSSTCam is not yet on sky, by count too, but that will, of course, not remain the case forever.
+[^refactor]: It is quite possible that a _little_ of this could be refactored now, but doing that before now would have been very premature, and actually may well still be, or may simply not be worth the effort.
+
 ### Snowflake Services
+
+##### All sky images
+A service (outside of RA) writes files to a fixed root path on disk at the summit, with the subdirectories named by the `dayObs`. This services monitors path for new per-day directories, and once they exist, scans for new files, and each time one lands, restretches the PNG file to enhance the contrast, overlays the cardinal directions on it, labels it for the time it acquired, and send to S3 for diplay on RubinTV. Every 10 minutes, all images on that day are animated and the updated animation is also sent to S3 for RubinTV display. These images are not ingested, and an obs_package does not exist for them.
+
+##### StarTracker Image Processing
+
+##### Monitor Image Serving
+
+##### Metadata Servers
+
+##### Night Report Generation
+
+##### Catchup Service
+
+##### ImageExaminer (likely needs replacing)
+
+##### SpectrumExaminer
+
+##### AuxTel Mount Torque Analysis
+
+##### TMA Event Generation
+
+A `TMAEventMaker` is run in a loop, such that every time the TMA moves, new events are geneated from the EFD via the `TMAStateMachine` (see [SITCOMTN-098](https://sitcomtn-098.lsst.io/) for the technical details on `TMAEvent` generation). For each new TMA movement, various bits of telemetry are pulled from the EFD, and plots and metrics are created from them, and are sent to RubinTV for display (and will be sent to the Summit/Visit Database once it is possible).
+
 
 ### Full Focal Plane Processing
 
 For the sake of simplicity, this section will only consider the summit, but note that simialar systems are in place at all locations, with no real architectural differences, just different `instruments` and data streams being processed.
 
-For each `instrument` (which on the summit will be, at some point, likely all of `LATISS`, `LSSTComCam` and `LSSTCam` simultaneously), the architecture is as follows.
+For each `instrument` (which on the summit will be, at some point, likely all of `LATISS`, `LSSTComCam` and `LSSTCam` simultaneously), the architecture is as follows:
 
-A head node exists, which watches for new data landing, and dispatches this to the worker nodes, in a scatter-type processing flow.
+A head node exists, which watches for new data landing in the instrument's repo, and dispatches this in a dynamic and configurable way to the worker nodes, as detailed in §Processing control (XXX how do you link a section?)
 
-Scatter/gather. Processing control
+Scatter/gather.
 * ISR
 * SFM
+
+#### Processing control
+
+dynamic and configurable: dynamic based on the data rate and how we're keeping up. Configurable via LOVE and notebooks (for a _very_ select set of power users)
+
+{images of focal plane patterns here}
 
 Side notes:
 
