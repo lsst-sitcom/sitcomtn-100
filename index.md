@@ -1,10 +1,16 @@
 # The Rapid Analysis Framework and its relationship to RubinTV
 
+## Preamble (aka. soapbox)
+
 > This technote is both a work-in-progress, because
 > * 1) it is a provisional version which won't be tidied up until after the design review
 > * 2) it is documenting a moving target, meaning that there are places where the present tense is used to save having to write everything twice, but where the work hasn't quite been done yet. These are, however, all places where the work is planned and underway, _i.e._ it's not aspirational, it's just not quite finsihed yet, but will be on the scale of weeks.
 
-> There are many ways to skin a cat. This is _de facto_ how it is currently being done, but nothing in here should be taken as an assertion that this is how it _should_ be being done, merely that it is currently (and that without significant intervention and extra effort allocated, it will remain so, due to the finite nature of the allocated effort and enormous scope of work).
+> There are many ways to skin a cat. This is how it is _currently_ being done, but nothing in here should be taken as an assertion that this is how it _should_ be being done, merely that this is how it is at present (and that without significant intervention and extra effort allocated, it will remain so, due to the finite nature of the allocated effort and enormous scope of remaining work).
+
+> Your forgiveness is requested: this would not have been written alone/without oversight if I had been given some help/oversight, but as we all know, the project is under-resourced, and this is what happened. Nobody is to blame, but the code we have is what I came up with because I had to to make things work for those on the summit.
+
+> Finally, it is perhaps worth remembering that the initial architecure was conceived and deployed a) organically, as it was required, and b) that it came into being in January 2020 with the delivery of LATISS to the summit, so if you find youself thinking "why doesn't it look like/use X", recall what the DM landscape was back then, and what existed in terms of leverageable architectures. Given that, I think it's quite surprising how _not_ bad it all is! YMMV though, of course...
 
 ## Abstract
 
@@ -14,15 +20,15 @@ Documentation on the architecture of the Rapid Analysis Framework, including its
 
 ## Introduction
 
-Historically, there has been confusion about what Rapid Analysis is, what RubinTV is, and what the relationship and boundaries are between the two. This is because they were developed at the same time, co-evolving with one another. However, they are entirely decoupled. Therefore, we begin with definitions of each, paying careful attention to say exactly what each is, and is not. This technote will provide a detailed description of, and motivation for the Rapid Analysis Framework, but does not go into depth about the workins of RubinTV - that will be covered in enough depth to make it clear what it is and where the boundaries are, but no more than that. It is also worth nothing that some of this confusion came from some poor naming choices as the co-evolution of Rapid Analysis and RubinTV was ongoing, almost all of which has now been rectified, with the only item remaining to be fixed being that the RA framework still lives in a repo called `rubintv_production`
+Historically, there has been confusion about what Rapid Analysis is, what RubinTV is, and what the relationship and boundaries are between the two. This is because they were developed at the same time, co-evolving with one another. However, they are entirely separate, and totally decoupled, in the technical sense. Therefore, we begin with definitions of each, paying careful attention to say exactly what each is, and is not. This technote will provide a detailed description of, and motivation for, the Rapid Analysis Framework, but does not go into depth about the workings of RubinTV - that will be covered in enough depth to make it clear what it is and where the boundaries are, but no more than that. It is also worth nothing that some of this confusion came from some poor naming choices made as the co-evolution of Rapid Analysis and RubinTV was ongoing, almost all of which have now been rectified, with the only item remaining to be fixed being that the RA framework still lives in a repo called `rubintv_production`. (XXX can I fix this before the review?! Probably not without risking breakage of the summit, especially as some people might well still be on vacation)
 
 #### What Rapid Analysis is/isn't
 
 Rapid Analysis (RA) is a realtime processing framework. It is a set of kubernetes pods which run in various locations, and process data in realtime. Currently, these locations are:
 * On the summit
 * USDF
-* BTS
-* TTS
+* BTS (for bi-directional testing)
+* TTS (for bi-directional testing)
 
 RA is _not_ deployed via phalanx. It is administered via ArgoCD, and the repo which defines the pods and their memory/CPU allocations is [link to repo](https://github.com/lsst-ts/argocd-csc/). XXX update that link to point to the rapid_analysis part.
 
@@ -84,6 +90,8 @@ A service (outside of RA) writes files to a fixed root path on disk at the summi
 
 ##### Monitor Image Serving
 
+For each new LATISS image, this service creates a `.png` of the post-ISR focal plane and sends it to S3 for display on RubinTV. Also pulls metadata from the image, and sends it to the LATISS `MetadataServer` for dispatch to RubinTV (and once it exists, the Summit/Visit Database).
+
 ##### Metadata Servers
 
 ##### Night Report Generation
@@ -91,6 +99,8 @@ A service (outside of RA) writes files to a fixed root path on disk at the summi
 ##### Catchup Service
 
 ##### ImageExaminer (likely needs replacing)
+
+For each new LATISS image, this service creates a `.png` containg some very quick canned analyses which are appropriate to run on all LATISS images, and sends it to S3 for display on RubinTV.
 
 ##### SpectrumExaminer
 
