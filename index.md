@@ -90,6 +90,11 @@ The `summit_extras` package, however, is not like this. It is a place for adding
 
 > Soapbox section: First and foremost, Rapid Analysis is a pragmatic, "let's say yes/make things happen" arena. That's an odd things to say though, so why am I saying that? There are a large number of brilliant, hardworking scientists working on the summit/elsewhere to commission the system, and many of them are frequently blocked by needing various thigns to exist which simply weren't planned (at least with respect to data processing and software support), and which, if we stopped to do things the way we'd all like them to be done, would result in significant (== multiple months) of critical path deplays (_i.e._ this is real, important stuff, and saying "we should have done it like X" is definitely a valid point, but _needs_ to price in "would you still say that if someone said it was a critical path activity and doing it that way would delay the activity by ~2 months, and in more than one instance?").
 
+The overwhleming majority of Rapid Analysis pods will (once the main camera is taking data) be for processing the full focal plane data via Single Frame Measurement. However, when counting by either type or by code line-count[^podcount], the vast majority of the Rapid Analysis deployed services are actually "snowflake services" - realtime processing services for things which have been written from scratch to support a specific non-SFM use-case[^refactor].
+
+[^podcount]: And for now, because LSSTCam is not yet on sky, by count too, but that will, of course, not remain the case forever.
+[^refactor]: It is quite possible that a _little_ of this could be refactored now, but doing that before now would have been very premature, and actually may well still be, or may simply not be worth the effort.
+
 * Many things are not (and could never be) `pipelineTasks`:
     * Some data is not ingested - in these cases RA is working on raw files, _i.e._ there is no `butler` involvment. Examples include:
         * StarTracker data
@@ -109,10 +114,7 @@ The `summit_extras` package, however, is not like this. It is a place for adding
 
 ## Rapid Analysis Services
 
-The overwhleming majority of Rapid Analysis pods will (once the main camera is taking data) be for processing the full focal plane data via Single Frame Measurement. However, when counting by either type or by code line-count[^podcount], the vast majority of the Rapid Analysis deployed services are actually "snowflake services" - realtime processing services for things which have been written from scratch to support a specific case[^refactor].
-
-[^podcount]: And for now, because LSSTCam is not yet on sky, by count too, but that will, of course, not remain the case forever.
-[^refactor]: It is quite possible that a _little_ of this could be refactored now, but doing that before now would have been very premature, and actually may well still be, or may simply not be worth the effort.
+The [Snowflake services](#snowflake-services) are all services which have been written from scratch for RA and are not just thin wrappers around SFM. The SFM pipeline pods are covered in the [Full Focal Plane Processing](#full-focal-plane-processing) section, which covers LSSTCam, LSSTComCam and LATISS SFM processing (LATISS, when taking survey images, is also "full focal plane processing", it just has a single chip).
 
 ### Snowflake Services
 
@@ -171,7 +173,7 @@ Scatter/gather.
 * ISR
 * SFM
 
-#### Processing control {#processing-control}
+#### Processing control
 
 dynamic and configurable: dynamic based on the data rate and how we're keeping up. Configurable via LOVE (and notebooks for a _very_ select set of power users).
 
