@@ -117,13 +117,13 @@ For the sake of simplicity, this section will only consider the summit, but note
 
 For each `instrument` (which on the summit will be, at some point, likely all of `LATISS`, `LSSTComCam` and `LSSTCam` simultaneously), the architecture is as follows:
 
-A head node exists, which watches for new data landing in the instrument's repo, and dispatches this in a dynamic and configurable way to the worker nodes, as detailed in §Processing control (XXX how do you link a section?)
+A head node exists, which watches for new data landing in the instrument's repo, and dispatches this in a dynamic and configurable way to the worker nodes, as detailed in [Processing Control](#processing-control).
 
 Scatter/gather.
 * ISR
 * SFM
 
-#### Processing control
+#### Processing control {#processing-control}
 
 dynamic and configurable: dynamic based on the data rate and how we're keeping up. Configurable via LOVE and notebooks (for a _very_ select set of power users)
 
