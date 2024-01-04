@@ -114,8 +114,9 @@ The overwhleming majority of Rapid Analysis pods will (once the main camera is t
 
 ## Rapid Analysis Services
 
-The [Snowflake services](#snowflake-services) are all services which have been written from scratch for RA and are not just thin wrappers around SFM. The SFM pipeline pods are covered in the [Full Focal Plane Processing](#full-focal-plane-processing) section, which covers LSSTCam, LSSTComCam and LATISS SFM processing (LATISS, when taking survey images, is also "full focal plane processing", it just has a single chip).
+The [Snowflake services](#snowflake-services) are all services which have been written from scratch for RA and are not just thin wrappers around SFM. The SFM pipeline pods are covered in the [Full Focal Plane Processing](#processing-control) section, which covers LSSTCam, LSSTComCam and LATISS SFM processing (LATISS, when taking survey images, is also "full focal plane processing", it just has a single chip).
 
+(snowflake-services)=
 ### Snowflake Services
 
 ##### All sky images
@@ -173,6 +174,7 @@ Scatter/gather.
 * ISR
 * SFM
 
+(processing-control)=
 #### Processing control
 
 Full focal plane processing behaviour is both dynamic and configurable: it is dynamic, based on the image acquisition rate, and how well the cluster is able keeping up. The behaviour for when we are not perfectly keeping up is configurable via LOVE (and notebooks for a _very_ select set of power users, and _only_ for development and testing use).
