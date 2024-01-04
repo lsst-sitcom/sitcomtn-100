@@ -136,11 +136,11 @@ XXX Write this section
 
 ##### Night Report Generation
 
-XXX Write this section
+This is a service which creates a selection of pre-defined plots throughout the night. Each time a new image is taken, all the plots are recreated and sent to RubinTV. There is an small framework which makes adding new plots very easy so that summit users/commissioning folk can easily add plots here to appear on RubinTV. It is possible that this will be depracated/removed once the Derived Data Visualization work is done, but that remains to be seen, as it is possible there will still be a reason to have these made in a fixed and automatic way (for example, to add some plots automatically to observers' end-of-night reports).
 
 ##### Catchup Service
 
-XXX Write this section
+This is a custom-written service which finds gaps in the processing for various channels, and runs those images through their respective "pipelines" (not `pipelineTask`s but the respective unit of work for a given instrument/image/channel). This is specifically used for catchup on snowflake services - full focal plane catchup processing a very differently shaped problem, and is covered in [Full Focal Plane Processing control](#processing-control).
 
 ##### ImageExaminer (service likely needs replacing)
 
@@ -175,13 +175,30 @@ Scatter/gather.
 
 #### Processing control
 
-dynamic and configurable: dynamic based on the data rate and how we're keeping up. Configurable via LOVE (and notebooks for a _very_ select set of power users).
+Full focal plane processing behaviour is both dynamic and configurable: it is dynamic, based on the image acquisition rate, and how well the cluster is able keeping up. The behaviour for when we are not perfectly keeping up is configurable via LOVE (and notebooks for a _very_ select set of power users, and _only_ for development and testing use).
+
+##### Dynamic focal plane selection
+
+Work distribution via `redis`. Pods nominally have detector affinity, as this keeps things simple and allows caching of calibs, though there are plans to handle things more dynamically if it turns out this would allow making better use of resources. Fanout service allocates work based on the current `ProcessingMode`
+
+* `As fast as possible`: each pod immediately
 
 {images of focal plane patterns here}
 
-Side notes:
+##### Processing modes
 
-## `git-pull` on pod start
+* `WAITING`: Each detector's pod sits and waits for the next image to land. Once one is available, SFM runs to completion, `butler.put()`ing the resulting calexp as well as writing out some intermediate metadata shards which are collated and sent to Sasquatch and the Summit/Visit Database and RubinTV. Once the processing is finished, the pod waits and does not process any images in the backlog queue, waiting for a new image to land.
+* `CONSUMING`: Each detector's pod processes its most recent detector image as per `WAITING`, but if, once finished, a new image has not landed, the most recent image on the backlog queue will be processed, continually, until a new image lands.
+* `MURDEROUS`: This is a best-of-both-worlds hybrid of `WAITING` and `CONSUMING` where the most recent image is always let to run to completion, but if the image in progress came from the backlog queue and a new image lands while processing is not yet finished, progress is abandoned and the image is put back on the backlog queue. This mode does not yet exist.
+
+
+#### Gather-type processes
+
+`Plotter` and `RePlotter`. Usage of the scratch area.
+
+## Notes
+
+### `git-pull` on pod start
 
 - Motivation
 - How it works
@@ -189,20 +206,26 @@ Side notes:
 - responsibility.
 
 
-## Techdebt
+### Techdebt
 
-There are several places where Rapid Analysis has significant tech debt. Some of it is minor, but ugly and just in need of tidyup because it was done in a hurry, but some of it is deeper and a risk to ongoing stability and maintainance, and hinders developement.
+There are several places where Rapid Analysis has significant tech debt. Some of it is minor, but ugly and just in need of a tidyup because it was done in a hurry, but some of it is deeper and a risk to ongoing stability and maintainance, and hinders developement.
 
-* Test coverage - both unit tests and CI testing:
-The coverage is frankly shocking. It not only makes development harder and more scary, but hinders larger, more refactoring-like work, and thus causes a vicious circle, with the debt compounding as the lack of tests makes tidying up harder itself.
-* `LocationConfig`:
-This is honestly just pretty gross. It is not a hard fix, but it does need doing.
-* Package (and some file) renaming
-Finally deal with the hangover of `rubintv_production` etc.
-* The RA pod build system and devOps work
-It may well be that there's no real tech debt here, it may just need more FTEs. Basically it needs to be so that it doesn't need to be done me and Tiago
+Minor:
+* `LocationConfig`: This is honestly just pretty gross. It is not a hard fix, but it does need doing.
+* Package (and some file) renaming. Need to finally deal with the hangover of `rubintv_production` etc.
+* Some channels are just a bit ugly/hacky because they were written in a hurry and then ignored once they worked. They're only the low priority ones though, e.g. all sky camera.
+
+Major:
+* Test coverage - both unit tests and CI testing: The test coverage is frankly shocking - it's very close to zero (XXX measure this?). It not only makes development harder and more scary, but hinders larger, more refactoring-like work, and thus causes a vicious circle, with the debt compounding as the lack of tests makes tidying up more difficult itself.
+* RA pod build system and devOps work: It may well be that there's no real tech debt here, it may just need more FTEs. Basically it just needs to be so that it doesn't need to be done me and Tiago (though I think Sebastian might be able to help here, now).
 
 
-Some of the channels are just a bit hacky and gross
-They're only the low priority ones though, e.g. all sky camera etc
+----------------
 
+TODO:
+
+* Install and run a spell checker
+* Add diagrams
+* Add section numbers - how do I do this automatically?
+* Check for all instances of XXX
+* Note to self: can I make an `ipywidget` to do an equivalent of the LOVE display of cluster status?
