@@ -69,7 +69,7 @@ Simon helped us put together the initial web app, and thus it was born in the SQ
 
 When it became clear that RubinTV was going to live long term, and that its contents would be subject to embargo compliance, v2 was written, which brought about several changes. Firstly, it moved from Roundtable deployment to phalanx. It changed frameworks from `saphir` to `FastAPI`, and moved from GCS storage to being S3 backed, so that we could self-host the data for embargo reasons. This move to S3, plus the need to have the summit display be resilient to network outages, necessitated a change in how the web app is deployed and backed. It is therefore now: one S3 bucket per (non-USDF) location, with two web app instances (dev and prod), with each web app hosting the data from its own location, _i.e._ the summit instance shows the real summit data, the TTS deployment only shows emulated data from the TTS, and likewise the BTS shows emulated BTS data only, too. The USDF-hosted web app breaks the pattern, by being the superset of all locations: there are four S3 buckets at USDF: three which are mirrors of the other buckets (summit, TTS and BTS), and a local bucket containing USDF's own data (data created from cleanroom testing, which continue being generated at USDF). The USDF web apps therefore still have a selectable location, whereas the per-location sites will not, as they only have access to their local data.
 
-XXX diagram of buckets here.
+![Diagram of data flow from Rapid Analysis to the various RubinTV instances](./images/buckets.pdf)
 
 #### What are `summit_utils` and `summit_extras`?
 
