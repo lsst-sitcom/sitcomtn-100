@@ -164,6 +164,12 @@ Scatter/gather.
 * ISR
 * SFM
 
+XXX need to explain quite a bit more here, and bring in the diagram.
+XXX Need to add the gather-type processes to after the work pool SFM processing to the diagram, too.
+
+![Diagram show work distribution via redis, processing control, and data flow from Rapid Analysis to RubinTV.](./images/ProcessingControl.png)
+
+
 (processing-control)=
 #### Processing control
 
