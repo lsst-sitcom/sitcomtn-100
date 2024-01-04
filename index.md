@@ -117,47 +117,39 @@ The [Snowflake services](#snowflake-services) are all services which have been w
 (snowflake-services)=
 ### Snowflake Services
 
-* All sky images
-A service (outside of RA) writes files to a fixed root path on disk at the summit, with the subdirectories named by the `dayObs`. The all sky services monitors this path for new per-day directories, and once they exist, scans for new files, and each time one lands, restretches the PNG file to enhance the contrast, overlays the cardinal directions on it, overlays the time the image was taken, and sends it to S3 for diplay on RubinTV, as well as uploading to the EPO GCS bucket for public display. Every 10 minutes, all images on taken on current day are animated, and the updated animation is sent to S3 for RubinTV display. These images are not ingested, and an obs_package does not exist for them, nor is there one planned, as far as I am aware. At the end of the day the temporary files are deleted and the final animation is sent to S3 for access in RubinTV in the all sky "historical" section for posterity.
+All sky images
+: A service (outside of RA) writes files to a fixed root path on disk at the summit, with the subdirectories named by the `dayObs`. The all sky services monitors this path for new per-day directories, and once they exist, scans for new files, and each time one lands, restretches the PNG file to enhance the contrast, overlays the cardinal directions on it, overlays the time the image was taken, and sends it to S3 for diplay on RubinTV, as well as uploading to the EPO GCS bucket for public display. Every 10 minutes, all images on taken on current day are animated, and the updated animation is sent to S3 for RubinTV display. These images are not ingested, and an obs_package does not exist for them, nor is there one planned, as far as I am aware. At the end of the day the temporary files are deleted and the final animation is sent to S3 for access in RubinTV in the all sky "historical" section for posterity.
 
-#### StarTracker Image Processing
-For every image taken by the three Star Tracker cameras (wide, narrow and fast) a `wcs` is constructed from the image headers (including fixups), source detection is run, and an astrometric solution is found via astrometry.net. The offset between the fitted `wcs` and the nominal TMA pointing is calculated, and the various wcs numbers and residuals are sent to RubinTV for display. These images are not ingested, and a working obs_package does not exist for them.[^startracker_obs_package]
+StarTracker Image Processing
+: For every image taken by the three Star Tracker cameras (wide, narrow and fast) a `wcs` is constructed from the image headers (including fixups), source detection is run, and an astrometric solution is found via astrometry.net. The offset between the fitted `wcs` and the nominal TMA pointing is calculated, and the various wcs numbers and residuals are sent to RubinTV for display. These images are not ingested, and a working obs_package does not exist for them.[^startracker_obs_package]
 
 [^startracker_obs_package]: Once it does, image retreival and wcs creation could be done via a butler and `afwImage`, but this does not really gain RA much, though it would make some people happy. However, despite being this being "imminent", I've been waiting ~18 months (XXX check when first StarTracker data was on RubinTV and update this number) for this to happen, and there has been no progress on this for a long time now.
 
-#### Monitor Image Serving
+Monitor Image Serving
+: For each new LATISS image, this service creates renders a `.png` of the post-ISR focal plane and sends it to S3 for display on RubinTV. It also pulls metadata from the image, and sends it to the LATISS `MetadataServer` for dispatch to RubinTV (and once it exists, the Summit/Visit Database).
 
-For each new LATISS image, this service creates renders a `.png` of the post-ISR focal plane and sends it to S3 for display on RubinTV. It also pulls metadata from the image, and sends it to the LATISS `MetadataServer` for dispatch to RubinTV (and once it exists, the Summit/Visit Database).
+Metadata Servers
+: XXX Write this section
 
-#### Metadata Servers
+Night Report Generation
+: This is a service which creates a selection of pre-defined plots throughout the night. Each time a new image is taken, all the plots are recreated and sent to RubinTV. There is an small framework which makes adding new plots very easy so that summit users/commissioning folk can easily add plots here to appear on RubinTV. It is possible that this will be depracated/removed once the Derived Data Visualization work is done, but that remains to be seen, as it is possible there will still be a reason to have these made in a fixed and automatic way (for example, to add some plots automatically to observers' end-of-night reports).
 
-XXX Write this section
+Catchup Service
+: This is a custom-written service which finds gaps in the processing for various channels, and runs those images through their respective "pipelines" (not `pipelineTask`s but the respective unit of work for a given instrument/image/channel). This is specifically used for catchup on snowflake services - full focal plane catchup processing a very differently shaped problem, and is covered in [Full Focal Plane Processing control](#processing-control).
 
-#### Night Report Generation
+ImageExaminer (service likely needs replacing)
+: For each new LATISS image, this service creates a `.png` containg some very quick (order of 1 second including i/o) canned analyses which are appropriate to run on all LATISS images, and sends it to S3 for display on RubinTV. This was a very quick and dirty service which was thrown together, and likely could do with a total rewrite now that other software has matured.
 
-This is a service which creates a selection of pre-defined plots throughout the night. Each time a new image is taken, all the plots are recreated and sent to RubinTV. There is an small framework which makes adding new plots very easy so that summit users/commissioning folk can easily add plots here to appear on RubinTV. It is possible that this will be depracated/removed once the Derived Data Visualization work is done, but that remains to be seen, as it is possible there will still be a reason to have these made in a fixed and automatic way (for example, to add some plots automatically to observers' end-of-night reports).
+SpectrumExaminer
+: For each new dispersed (spectral) LATISS image taken, this service creates a `.png` containg a very quick (order of 1 second including i/o) "spectral reduction" and sends it to S3 for display on RubinTV. This provides realtime feedback for observers and scripts, giving the main source signal level and the continuum flux in ADU/s so that exposure times can be adjusted dynmaically.
 
-#### Catchup Service
-
-This is a custom-written service which finds gaps in the processing for various channels, and runs those images through their respective "pipelines" (not `pipelineTask`s but the respective unit of work for a given instrument/image/channel). This is specifically used for catchup on snowflake services - full focal plane catchup processing a very differently shaped problem, and is covered in [Full Focal Plane Processing control](#processing-control).
-
-#### ImageExaminer (service likely needs replacing)
-
-For each new LATISS image, this service creates a `.png` containg some very quick (order of 1 second including i/o) canned analyses which are appropriate to run on all LATISS images, and sends it to S3 for display on RubinTV. This was a very quick and dirty service which was thrown together, and likely could do with a total rewrite now that other software has matured.
-
-#### SpectrumExaminer
-
-For each new dispersed (spectral) LATISS image taken, this service creates a `.png` containg a very quick (order of 1 second including i/o) "spectral reduction" and sends it to S3 for display on RubinTV. This provides realtime feedback for observers and scripts, giving the main source signal level and the continuum flux in ADU/s so that exposure times can be adjusted dynmaically.
-
-#### AuxTel Mount Torque Analysis
-
-For each LATISS image which is longer than 2s[^2s_limit] and for which the mount was moving, the mount position and motor currents (torques) are pulled for each of the three axes from the EFD. The residuals from nominal pointing are calulated, and the spurious mount motion RMS and the contribution this has to the image quality are calculated. This metric is sent to RubinTV, along with a plot of the mount motions. The mount performance metrics and image degradation numbers will be sent to Summit/Visit Database once that is possible.
+AuxTel Mount Torque Analysis
+: For each LATISS image which is longer than 2s[^2s_limit] and for which the mount was moving, the mount position and motor currents (torques) are pulled for each of the three axes from the EFD. The residuals from nominal pointing are calulated, and the spurious mount motion RMS and the contribution this has to the image quality are calculated. This metric is sent to RubinTV, along with a plot of the mount motions. The mount performance metrics and image degradation numbers will be sent to Summit/Visit Database once that is possible.
 
 [^2s_limit]: XXX Why is there a 2s limit on this? Need to get an explanation from Craig. I think it might be possible to fix this now.
 
-#### TMA Event Generation
-
-A `TMAEventMaker` is run in a loop, such that every time the TMA moves, new events are geneated from the EFD via the `TMAStateMachine` (see [SITCOMTN-098](https://sitcomtn-098.lsst.io/) for the technical details on `TMAEvent` generation). For each new TMA movement, various bits of telemetry are pulled from the EFD, and plots and metrics are created from them, and are sent to RubinTV for display (and will be sent to the Summit/Visit Database once it is possible).
+TMA Event Generation
+: A `TMAEventMaker` is run in a loop, such that every time the TMA moves, new events are geneated from the EFD via the `TMAStateMachine` (see [SITCOMTN-098](https://sitcomtn-098.lsst.io/) for the technical details on `TMAEvent` generation). For each new TMA movement, various bits of telemetry are pulled from the EFD, and plots and metrics are created from them, and are sent to RubinTV for display (and will be sent to the Summit/Visit Database once it is possible).
 
 
 ### Full Focal Plane Processing
