@@ -1,7 +1,6 @@
 # The Rapid Analysis Framework and its relationship to RubinTV
 
-## Abstract
-```
+```{abstract}
 Documentation on the architecture of the Rapid Analysis Framework, including its relationship to RubinTV.
 ```
 
